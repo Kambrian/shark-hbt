@@ -105,7 +105,7 @@ const std::vector<SubhaloPtr> SURFSReader::read_subhalos(unsigned int batch)
 	std::vector<float> velocity = batch_file.read_dataset_v_2<float>("haloTrees/velocity");
 
 	//Read mass, circular velocity and angular momentum.
-	std::vector<float> Mvir = batch_file.read_dataset_v<float>("haloTrees/nodeMass");
+	std::vector<float> Mvir = batch_file.read_dataset_v<float>("haloTrees/nodeMass"); //is this virial or bound mass?
 	std::vector<float> Vcirc = batch_file.read_dataset_v<float>("haloTrees/maximumCircularVelocity");
 	std::vector<float> L = batch_file.read_dataset_v_2<float>("haloTrees/angularMomentum");
 
@@ -116,10 +116,10 @@ const std::vector<SubhaloPtr> SURFSReader::read_subhalos(unsigned int batch)
 
 	//Read indices and the snapshot number at which the subhalo lives.
 	std::vector<int> snap = batch_file.read_dataset_v<int>("haloTrees/snapshotNumber");
-	std::vector<Subhalo::id_t> nodeIndex = batch_file.read_dataset_v<Subhalo::id_t>("haloTrees/nodeIndex");
+	std::vector<Subhalo::id_t> nodeIndex = batch_file.read_dataset_v<Subhalo::id_t>("haloTrees/nodeIndex"); //do we have to follow a convention for the id?
 	std::vector<Subhalo::id_t> descIndex = batch_file.read_dataset_v<Subhalo::id_t>("haloTrees/descendantIndex");
-	std::vector<Halo::id_t> hostIndex = batch_file.read_dataset_v<Halo::id_t>("haloTrees/hostIndex");
-	std::vector<Halo::id_t> descHost = batch_file.read_dataset_v<Halo::id_t>("haloTrees/descendantHost");
+	std::vector<Halo::id_t> hostIndex = batch_file.read_dataset_v<Halo::id_t>("haloTrees/hostIndex"); //is this also a nodeIndex? yes, but this question is probably irrelevant as long as it is a unique host index.
+	std::vector<Halo::id_t> descHost = batch_file.read_dataset_v<Halo::id_t>("haloTrees/descendantHost"); 
 
 	//Read properties that characterise the position of the subhalo inside the halo.descendantIndex
 	std::vector<int> IsMain = batch_file.read_dataset_v<int>("haloTrees/isMainProgenitor");
@@ -172,6 +172,7 @@ const std::vector<SubhaloPtr> SURFSReader::read_subhalos(unsigned int batch)
 			subhalo->descendant_id = descendant_id;
 			subhalo->descendant_halo_id = descHost[i];
 		}
+		
 
 		//Assign main progenitor flags.
 		if(IsMain[i] == 1){
@@ -184,8 +185,17 @@ const std::vector<SubhaloPtr> SURFSReader::read_subhalos(unsigned int batch)
 		}
 
 		//Make all subhalos satellite, because once we construct the merger tree we will find the main branch.
-		subhalo->subhalo_type = Subhalo::SATELLITE;
-
+// 		subhalo->subhalo_type = Subhalo::SATELLITE;
+        //JX Han: 2022/10/25
+        //Assign central flag
+        if(IsCentre[i]){
+            subhalo->subhalo_type = Subhalo::CENTRAL;
+        }
+        else
+        {
+            subhalo->subhalo_type = Subhalo::SATELLITE;
+        }
+        
 		//Assign mass.
 		subhalo->Mvir = Mvir[i];
 
@@ -276,7 +286,7 @@ const std::vector<HaloPtr> SURFSReader::read_halos(unsigned int batch)
 			LOG(trace) << "Adding " << subhalo << " to " << halo;
 		}
 		subhalo->host_halo = halo;
-		halo->add_subhalo(std::move(subhalo));
+		halo->add_subhalo(std::move(subhalo)); //host Mvir is simply the sum of sub Mvirs
 	}
 	subhalos.clear();
 
