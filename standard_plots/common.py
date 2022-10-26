@@ -239,7 +239,8 @@ def read_data(model_dir, snapshot, fields, subvolumes, include_h0_volh=True):
     data = collections.OrderedDict()
     for idx, subv in enumerate(subvolumes):
 
-        fname = os.path.join(model_dir, str(snapshot), str(subv), 'galaxies.hdf5')
+        #fname = os.path.join(model_dir, str(snapshot), str(subv), 'galaxies.hdf5')
+        fname = os.path.join(model_dir, str(snapshot), 'multiple_batches', 'galaxies.hdf5')
         print('Reading galaxies data from %s' % fname)
         with h5py.File(fname, 'r') as f:
             if idx == 0 and include_h0_volh:
@@ -265,7 +266,8 @@ def read_sfh(model_dir, snapshot, fields, subvolumes, include_h0_volh=True):
     data = collections.OrderedDict()
     for idx, subv in enumerate(subvolumes):
 
-        fname = os.path.join(model_dir, str(snapshot), str(subv), 'star_formation_histories.hdf5')
+        #fname = os.path.join(model_dir, str(snapshot), str(subv), 'star_formation_histories.hdf5')
+        fname = os.path.join(model_dir, str(snapshot), 'multiple_batches', 'star_formation_histories.hdf5')
         print('Reading SFH data from %s' % fname)
         with h5py.File(fname, 'r') as f:
             if idx == 0:
@@ -293,7 +295,8 @@ def read_photometry_data(model_dir, snapshot, subvolumes):
     ids = None
     for subv in subvolumes:
 
-        fname = os.path.join(model_dir, 'Photometry', str(snapshot), str(subv), 'Shark-SED.csv')
+        #fname = os.path.join(model_dir, 'Photometry', str(snapshot), str(subv), 'Shark-SED.csv')
+        fname = os.path.join(model_dir, 'Photometry', str(snapshot), 'multiple_batches', 'Shark-SED.csv')
         print('Reading photometry data from %s' % fname)
         my_data = np.genfromtxt(fname, delimiter=',', skip_header=1)
 
@@ -333,7 +336,8 @@ def read_photometry_data_variable_tau_screen(model_dir, snapshot, subvolumes):
     ids = None
     for subv in subvolumes:
 
-        fname = os.path.join(model_dir, 'Photometry', str(snapshot), str(subv), 'Shark-SED-tau-EAGLE.csv')
+        #fname = os.path.join(model_dir, 'Photometry', str(snapshot), str(subv), 'Shark-SED-tau-EAGLE.csv')
+        fname = os.path.join(model_dir, 'Photometry', str(snapshot), 'multiple_batches', 'Shark-SED-tau-EAGLE.csv')
         print('Reading photometry data from %s' % fname)
         my_data = np.genfromtxt(fname, delimiter=',', skip_header=1)
 
