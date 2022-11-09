@@ -131,8 +131,8 @@ private:
 
 	void create_per_thread_objects();
 	std::vector<MergerTreePtr> import_trees();
-	void evolve_merger_trees(const std::vector<MergerTreePtr> &merger_trees, int snapshot);
-	evolution_times evolve_merger_tree(const MergerTreePtr &tree, int thread_idx, int snapshot, double z, double delta_t);
+	void evolve_merger_trees(const std::vector<MergerTreePtr> &merger_trees, int snapshot, GalaxyCreator &galaxy_creator);
+	evolution_times evolve_merger_tree(const MergerTreePtr &tree, int thread_idx, int snapshot, double z, double delta_t, GalaxyCreator &galaxy_creator);
 	molgas_per_galaxy get_molecular_gas(const std::vector<HaloPtr> &halos, double z, bool calc_j);
 
 };
@@ -277,7 +277,7 @@ molgas_per_galaxy SharkRunner::impl::get_molecular_gas(const std::vector<HaloPtr
 
 }
 
-evolution_times SharkRunner::impl::evolve_merger_tree(const MergerTreePtr &tree, int thread_idx, int snapshot, double z, double delta_t)
+evolution_times SharkRunner::impl::evolve_merger_tree(const MergerTreePtr &tree, int thread_idx, int snapshot, double z, double delta_t, GalaxyCreator &galaxy_creator)
 {
 	// Get the thread-specific objects needed to run the evolution
 	// In the non-OpenMP case we simply have one
@@ -297,7 +297,7 @@ evolution_times SharkRunner::impl::evolve_merger_tree(const MergerTreePtr &tree,
 			LOG(debug) << "Merging galaxies in halo " << halo;
 		}
 		Timer t1;
-		galaxy_mergers.merging_galaxies(halo, snapshot, delta_t);
+		galaxy_mergers.merging_galaxies(halo, snapshot, delta_t, galaxy_creator);
 		times.galaxy_mergers += t1.get();
 
 		/*Evaluate disk instabilities.*/
@@ -331,7 +331,7 @@ evolution_times SharkRunner::impl::evolve_merger_tree(const MergerTreePtr &tree,
 	return times;
 }
 
-void SharkRunner::impl::evolve_merger_trees(const std::vector<MergerTreePtr> &merger_trees, int snapshot)
+void SharkRunner::impl::evolve_merger_trees(const std::vector<MergerTreePtr> &merger_trees, int snapshot, GalaxyCreator &galaxy_creator)
 {
 	Timer t;
 
@@ -354,7 +354,7 @@ void SharkRunner::impl::evolve_merger_trees(const std::vector<MergerTreePtr> &me
 	Timer evolution_t;
 	std::vector<evolution_times> times(threads);
 	omp_static_for(merger_trees, threads, [&](const MergerTreePtr &merger_tree, int thread_idx) {
-		times[thread_idx] += evolve_merger_tree(merger_tree, thread_idx, snapshot, simulation_params.redshifts[snapshot], delta_t);
+		times[thread_idx] += evolve_merger_tree(merger_tree, thread_idx, snapshot, simulation_params.redshifts[snapshot], delta_t, galaxy_creator);
 	});
 	LOG(info) << "Evolved galaxies in " << evolution_t;
 	LOG(info) << "Detailed times: " << std::accumulate(times.begin(), times.end(), evolution_times{});
@@ -434,7 +434,7 @@ void SharkRunner::impl::run() {
 	// This is because at snapshot "i" we don't evolve galaxies AT snapshot "i",
 	// but rather FROM snapshot "i" TO snapshot "i+1".
 	for(int snapshot = simulation_params.min_snapshot; snapshot <= simulation_params.max_snapshot - 1; snapshot++) {
-		evolve_merger_trees(merger_trees, snapshot);
+		evolve_merger_trees(merger_trees, snapshot, galaxy_creator);
 	}
 }
 

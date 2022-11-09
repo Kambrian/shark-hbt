@@ -36,6 +36,7 @@
 #include "physical_model.h"
 #include "simulation.h"
 #include "execution.h"
+#include "galaxy_creator.h"
 
 namespace shark {
 
@@ -121,7 +122,7 @@ public:
 	 */
 	void merging_subhalos(HaloPtr &halo, double z, int snapshot);
 
-	void merging_galaxies(HaloPtr &halo, int snapshot, double delta_t);
+	void merging_galaxies(HaloPtr &halo, int snapshot, double delta_t, GalaxyCreator &galaxy_creator);
 
 	void create_merger(GalaxyPtr &central, GalaxyPtr &satellite, HaloPtr &halo, int snapshot);
 

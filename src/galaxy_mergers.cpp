@@ -34,6 +34,7 @@
 #include "galaxy_mergers.h"
 #include "numerical_constants.h"
 #include "physical_model.h"
+#include "galaxy_creator.h"
 
 namespace shark {
 
@@ -273,7 +274,7 @@ void GalaxyMergers::merging_subhalos(HaloPtr &halo, double z, int snapshot)
 
 }
 
-void GalaxyMergers::merging_galaxies(HaloPtr &halo, int snapshot, double delta_t){
+void GalaxyMergers::merging_galaxies(HaloPtr &halo, int snapshot, double delta_t, GalaxyCreator &galaxy_creator){
 
 	/**
 	 * This function determines which galaxies are merging in this snapshot by comparing tmerge with the duration of the snapshot.
@@ -300,12 +301,16 @@ void GalaxyMergers::merging_galaxies(HaloPtr &halo, int snapshot, double delta_t
 	 */
 	GalaxyPtr central_galaxy = central_subhalo->central_galaxy();
 	if(!central_galaxy){
+        galaxy_creator.create_central(halo, z);
+        central_galaxy=central_subhalo->central_galaxy();
+        /*
 		std::ostringstream os;
 		os << central_subhalo << " has no central galaxy - in merging_galaxies. Number of galaxies " << central_subhalo->galaxy_count() << ".\n";
 		os << central_subhalo << " has a descendant " << central_subhalo->descendant << "which is of type " << central_subhalo->descendant->subhalo_type << "\n";
 		os << central_subhalo << " has " << central_subhalo->ascendants.size() << " ascendants.\n";
 		os << central_subhalo << " has a halo with " << central_subhalo->host_halo->ascendants.size() << " ascendants.";
 		throw exception(os.str());
+		*/
 	}
 
 	std::vector<GalaxyPtr> all_sats_to_delete;

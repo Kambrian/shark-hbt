@@ -26,6 +26,7 @@
 #include "galaxy_creator.h"
 #include "logging.h"
 #include "timer.h"
+#include <iostream>
 
 namespace shark {
 
@@ -59,9 +60,43 @@ void GalaxyCreator::create_galaxies(const std::vector<MergerTreePtr> &merger_tre
 		AllBaryons.baryon_total_created[snapshot] += total_baryon;
 	}
 
+	num_galaxies=galaxies_added;
 	LOG(info) << "Created " << galaxies_added << " initial galaxies in " << timer;
 }
 
+bool GalaxyCreator::create_central(const HaloPtr &halo, double z)
+{
+    Galaxy::id_t galaxy_id=num_galaxies;
+    auto central_subhalo=halo->central_subhalo;
+    if(!central_subhalo->central_galaxy())//JXH: no central somehow, we need to do something
+    {
+        auto galaxy = std::make_shared<Galaxy>(galaxy_id);
+        galaxy->galaxy_type=Galaxy::CENTRAL;
+        galaxy->vmax = central_subhalo->Vcirc;
+        
+        //If the input simulation is a hydro simulation, then use the input gas mass.
+        if(sim_params.hydrorun){
+            central_subhalo->hot_halo_gas.mass = halo->Mgas;
+        }
+        else{
+            central_subhalo->hot_halo_gas.mass = halo->Mvir * cosmology->universal_baryon_fraction();
+        }
+        
+        // Assign metallicity to the minimum allowed.
+        central_subhalo->hot_halo_gas.mass_metals = central_subhalo->hot_halo_gas.mass * cool_params.pre_enrich_z;
+        
+        central_subhalo->galaxies.emplace_back(std::move(galaxy));
+        
+        //             if (LOG_ENABLED(debug)) {
+        std::cout << "JXH: Added a central galaxy for subhalo " << central_subhalo;
+        //             }
+        
+        num_galaxies++;
+        
+        return true;
+    }
+    return false;
+}
 bool GalaxyCreator::create_galaxies(const HaloPtr &halo, double z, Galaxy::id_t galaxy_id)
 {
 

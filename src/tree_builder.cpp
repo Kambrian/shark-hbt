@@ -520,22 +520,28 @@ void HaloBasedTreeBuilder::loop_through_halos(const std::vector<HaloPtr> &halos)
 		LOG(info) << "Linking Halos/Subhalos at snapshot " << snapshot;
 
 		int ignored = 0;
-		for(auto &halo: halos_by_snapshot[snapshot]) {
+		for(auto &halo: halos_by_snapshot[snapshot]) 
+        {
             
             bool halo_erased = false;
             //clean subhalo and halo for terminated branches 
-			for(const auto &subhalo: halo->all_subhalos()) {
-                if (subhalo->has_descendant){//further check its desc exists
+			for(const auto &subhalo: halo->all_subhalos()) 
+            {
+                if (subhalo->has_descendant)
+                {//further check its desc exists
                     auto it = halos_by_id.find(subhalo->descendant_halo_id);
-                    if (it == halos_by_id.end()){//desc halo not found
+                    if (it == halos_by_id.end())
+                    {//desc halo not found
                         subhalo->has_descendant=false;
-                        if (LOG_ENABLED(debug)) {
+                        if (LOG_ENABLED(debug)) 
+                        {
                             LOG(debug) << subhalo << " points to descendant halo/subhalo "
                             << subhalo->descendant_halo_id << " / " << subhalo->descendant_id
                             << ", which doesn't exist. Ignoring this halo and the rest of its progenitors";
                         }
                     }
-                    else{
+                    else
+                    {
                         bool subhalo_descendant_found = false;
                         const auto &d_halo = halos_by_id[subhalo->descendant_halo_id];
                         for(auto &d_subhalo: d_halo->all_subhalos()) {
